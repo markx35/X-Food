@@ -1,0 +1,127 @@
+<?php
+namespace Ijdb;
+
+class IjdbRoutes implements \Ninja\Routes {
+	private $authorsTable;
+	private $JokesTable;
+	private $authentication;
+
+	public function __construct() {
+		include __DIR__ . '/../../includes/DatabaseConnection.php';
+		//05-12-22 yxie initiallize Joketable, authortable, authentication
+		$this->JokesTable = new \Ninja\DatabaseTable($pdo, 'Joke', 'id');
+		$this->authorsTable = new \Ninja\DatabaseTable($pdo, 'author', 'id');
+		$this->authentication = new \Ninja\Authentication($this->authorsTable, 'email', 'password');
+	}
+
+	public function getRoutes(): array {
+		//05-12-22 yxie initiallize JokeController, authorController, and loginController
+		$JokeController = new \Ijdb\Controllers\Joke($this->JokesTable, $this->authorsTable, $this->authentication);
+		$authorController = new \Ijdb\Controllers\Register($this->authorsTable);
+		$loginController = new \Ijdb\Controllers\Login($this->authentication);
+		//05-12-22 yxie create a routes array
+		$routes = [
+		//05-12-22 yxie setup the routes array with path
+			'author/register' => [
+				'GET' => [
+					'controller' => $authorController,
+					'action' => 'registrationForm'
+				],
+				'POST' => [
+					'controller' => $authorController,
+					'action' => 'registerUser'
+				]
+			],
+			'author/success' => [
+				'GET' => [
+					'controller' => $authorController,
+					'action' => 'success'
+				]
+			],
+			'Joke/edit' => [
+				'POST' => [
+					'controller' => $JokeController,
+					'action' => 'saveEdit'
+				],
+				'GET' => [
+					'controller' => $JokeController,
+					'action' => 'edit'
+				],
+				'login' => true
+				
+			],
+			'Joke/delete' => [
+				'POST' => [
+					'controller' => $JokeController,
+					'action' => 'delete'
+				],
+				'login' => true
+			],
+			'Joke/list' => [
+				'GET' => [
+					'controller' => $JokeController,
+					'action' => 'list'
+				]
+			],
+			//05-25-2022 yxie new route for Joke 
+			'Joke/Joke' => [
+				'GET' => [
+					'controller' => $JokeController,
+					'action' => 'Joke'
+				]
+			],
+			'Joke/checkout' => [
+				'POST' => [
+					'controller' => $JokeController,
+					'action' => 'savejoke'
+				],
+				'GET' => [
+					'controller' => $JokeController,
+					'action' => 'checkout'
+				],
+				'login' => true
+			],
+			'login/error' => [
+				'GET' => [
+					'controller' => $loginController,
+					'action' => 'error'
+				]
+			],
+			'login/success' => [
+				'GET' => [
+					'controller' => $loginController,
+					'action' => 'success'
+				]
+			],
+			'logout' => [
+				'GET' => [
+					'controller' => $loginController,
+					'action' => 'logout'
+				]
+			],
+			'login' => [
+				'GET' => [
+					'controller' => $loginController,
+					'action' => 'loginForm'
+				],
+				'POST' => [
+					'controller' => $loginController,
+					'action' => 'processLogin'
+				]
+			],
+			'' => [
+				'GET' => [
+					'controller' => $JokeController,
+					'action' => 'home'
+				]
+			]
+		];
+
+		return $routes;
+	}
+
+	public function getAuthentication(): \Ninja\Authentication {
+		return $this->authentication;
+	}
+
+}
