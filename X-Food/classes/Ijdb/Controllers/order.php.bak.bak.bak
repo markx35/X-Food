@@ -1,0 +1,126 @@
+<?php
+namespace Ijdb\Controllers;
+use \Ninja\DatabaseTable;
+use \Ninja\Authentication;
+
+class joke {
+	private $authorsTable;
+	private $JokesTable;
+
+	public function __construct(DatabaseTable $JokesTable, DatabaseTable $authorsTable, Authentication $authentication) {
+		$this->JokesTable = $JokesTable;
+		$this->authorsTable = $authorsTable;
+		$this->authentication = $authentication;
+	}
+
+	public function list() {
+		$result = $this->JokesTable->findAll();
+
+		$Jokes = [];
+		foreach ($result as $Joke) {
+			$author = $this->authorsTable->findById($Joke['authorId']);
+
+			$Jokes[] = [
+				'id' => $Joke['id'],
+				'Joketext' => $Joke['Joketext'],
+				'Jokedate' => $Joke['Jokedate'],
+				'f_name' => $author['f_name'],
+                //yxie - use firstname and lastname
+                'l_name' => $author['l_name'],
+                'email' => $author['email'],
+				'authorId' => $author['id']
+			];
+
+		}
+
+
+		$title = 'joke list';
+
+		$totalJokes = $this->JokesTable->total();
+
+		$author = $this->authentication->getUser();
+
+		return ['template' => 'Jokes.html.php', 
+				'title' => $title, 
+				'variables' => [
+						'totalJokes' => $totalJokes,
+						'Jokes' => $Jokes,
+						'userId' => $author['id'] ?? null
+					]
+				];
+	}
+
+	public function home() {
+		$title = 'X-Food';
+
+		return ['template' => 'home.html.php', 'title' => $title];
+	}
+	public function Joke() {
+		$title = 'joke';
+
+		return ['template' => 'menu.html.php', 'title' => $title];
+	}
+	public function checkout() {
+		$title = 'Checkout';
+
+		return ['template' => 'Joke.html.php', 'title' => $title];
+	}
+
+
+	public function delete() {
+
+		$author = $this->authentication->getUser();
+
+		$Joke = $this->JokesTable->findById($_POST['id']);
+
+		if ($Joke['authorId'] != $author['id']) {
+			return;
+		}
+		
+
+		$this->JokesTable->delete($_POST['id']);
+        //header('location: /Joke/list'); 5/25/18 JG DEL1L  org
+		header('location: index.php?Joke/list');  // 5/25/18 JG NEW1L  		
+	}
+
+	public function saveEdit() {
+		$author = $this->authentication->getUser();
+
+
+		if (isset($_GET['id'])) {
+			$Joke = $this->JokesTable->findById($_GET['id']);
+
+			if ($Joke['authorId'] != $author['id']) {
+				return;
+			}
+		}
+
+		$Joke = $_POST['Joke'];
+		$Joke['Jokedate'] = new \DateTime();
+		$Joke['authorId'] = $author['id'];
+
+		$this->JokesTable->save($Joke);
+		//header('location: /Joke/list'); 5/25/18 JG DEL1L  org
+		header('location: index.php?Joke/list');  //5/25/18 JG NEW1L  
+		
+	}
+
+	public function edit() {
+		$author = $this->authentication->getUser();
+
+		if (isset($_GET['id'])) {
+			$Joke = $this->JokesTable->findById($_GET['id']);
+		}
+
+		$title = 'Edit Joke';
+
+		return ['template' => 'editJoke.html.php',
+				'title' => $title,
+				'variables' => [
+						'Joke' => $Joke ?? null,
+						'userId' => $author['id'] ?? null
+					]
+				];
+	}
+	
+}

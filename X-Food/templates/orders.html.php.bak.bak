@@ -1,0 +1,33 @@
+
+<p><?=$totalOrders?> Orders have been submitted to the Order Database.</p>
+
+<?php foreach($orders as $order): ?>
+  <blockquote>
+  <p><b>
+  <?=htmlspecialchars($order['ordertext'], ENT_QUOTES, 'UTF-8')?></b>
+    (<a href="mailto:<?=htmlspecialchars($order['email'], ENT_QUOTES,
+                    'UTF-8'); ?>">
+         <!--yxie 5/24/2022 - first name -->
+                <?=htmlspecialchars($order['f_name'], ENT_QUOTES,
+                    'UTF-8'); ?>
+         <!--yxie 5/24/2022 - last name -->
+                <?=htmlspecialchars($order['l_name'], ENT_QUOTES,
+                    'UTF-8'); ?> </a>  on 
+<?php
+$date = new DateTime($order['orderdate']);
+echo $date->format('jS F Y');
+?>)
+
+<!-- <//  ?php if ($userId == $order['authorId']): ?>
+  <a href="/order/edit?id=<// ?=$order['id']?>">Edit</a>
+   <form action="/order/delete" method="post">    JG 5/25/18 org -->
+ <?php if ($userId == $order['authorId']): ?>
+  <a href="index.php?order/edit?id=<?=$order['id']?>">Edit</a>  <!-- JG 5/25/18 MOD2L --> 
+  <form action="index.php?order/delete" method="post">
+    <input type="hidden" name="id" value="<?=$order['id']?>">
+    <input type="submit" value="Delete">
+  </form>
+<?php endif; ?>
+  </p>
+</blockquote>
+<?php endforeach; ?>
